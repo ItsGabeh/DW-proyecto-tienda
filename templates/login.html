@@ -1,0 +1,17 @@
+<h2>Iniciar Sesion</h2>
+<form hx-post="/login" hx-target="">
+    <label for="email">Correo: </label>
+    <input type="email" id="email" name="email" required>
+    <br>
+    <label for="password">Contraseña: </label>
+    <input type="password" id="password" name="password" required>
+    <br>
+    <button type="submit">Ingresar</button>
+</form>
+<br>
+{{ if .errors }}
+    {{ range .errors}}
+    <p></p>
+    {{ end }}
+{{ end }}
+

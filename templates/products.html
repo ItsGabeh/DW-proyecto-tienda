@@ -1,0 +1,13 @@
+<div>
+    <h1>Lista de productos</h1>
+    <div>
+        {{ range .Products }}
+        <div>
+            <h3>{{ .Name }}</h3>
+            <p>Precio: {{ .Price }}</p>
+            <p>Disponibles: {{ .Stock }}</p>
+            <button hx-get="/products/{{ .ID }}" hx-target="#content">Ver producto</button>
+        </div>
+    {{ end }}
+    </div>
+</div>

@@ -19,11 +19,16 @@ var validate = validator.New()
 func RegisterUser(c *gin.Context) {
 	var user models.User
 
-	// vincular el JSON recibido con la estructura del usuario
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Datos invalidos"})
-		return
-	}
+	//vincular el JSON recibido con la estructura del usuario
+	// if err := c.ShouldBindJSON(&user); err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Datos invalidos"})
+	// 	return
+	// }
+
+	// Vinvular los campos del form
+	user.Username = c.PostForm("username")
+	user.Email = c.PostForm("email")
+	user.Password = c.PostForm("password")
 
 	// Validar los datos del usuario
 	if err := validate.Struct(user); err != nil {
@@ -68,6 +73,13 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Usuario correctamente registrado"})
+	messages := []gin.H{
+		gin.H{
+			"message": "Registro exitoso",
+		},
+	}
+
+	// c.JSON(http.StatusCreated, gin.H{"message": "Usuario registrado correctamente"})
+	c.HTML(http.StatusCreated, "register.html", gin.H{"messages": messages})
 
 }

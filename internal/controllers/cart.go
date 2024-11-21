@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/ItsGabeh/DW-proyecto-tienda/internal/db"
@@ -18,10 +19,28 @@ func AddToCart(c *gin.Context) {
 
 	// Obtener los datos del producto a añadir
 	var cartProduct models.CartProduct
-	if err := c.ShouldBindJSON(&cartProduct); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Datos invalidos"})
-		return
+	// if err := c.ShouldBindJSON(&cartProduct); err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Datos invalidos"})
+	// 	return
+	// }
+
+	// Obtener los datos desde el form
+	idString := c.PostForm("productId")
+	quantityString := c.PostForm("quantity")
+
+	// Convertir a objectID
+	id, err := primitive.ObjectIDFromHex(idString)
+	if err != nil {
+		// TODO
 	}
+	quantity, err := strconv.Atoi(quantityString)
+	if err != nil {
+		// TODO
+	}
+
+	// Poner los datos del post en la estructura
+	cartProduct.ProductID = id
+	cartProduct.Quantity = quantity
 
 	// Validar los datos
 	if err := validate.Struct(cartProduct); err != nil {
@@ -41,7 +60,7 @@ func AddToCart(c *gin.Context) {
 	userCollection := db.Client.Database("tienda").Collection("users")
 	var user models.User
 	filter := bson.M{"email": email}
-	err := userCollection.FindOne(ctx, filter).Decode(&user)
+	err = userCollection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuario no encontrado"})
 		return
@@ -86,7 +105,27 @@ func AddToCart(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Producto añadido al carrito"})
+	// Obtener el producto desde la base de datos
+	productCollection := db.Client.Database("tienda").Collection("products")
+	var product models.Product
+	err = productCollection.FindOne(ctx, bson.M{"_id": id}).Decode(&product)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No se pudo obtener los datos del producto"})
+		return
+	}
+
+	// Poner el producto en un formato para el front
+	productData := gin.H{
+		"ID":          product.ID.Hex(),
+		"Name":        product.Name,
+		"Description": product.Description,
+		"Price":       product.Price,
+		"Stock":       product.Stock,
+	}
+
+	// Regresar un mensaje de que se añadió al carrito
+	// c.JSON(http.StatusOK, gin.H{"message": "Producto añadido al carrito"})
+	c.HTML(http.StatusOK, "product.html", gin.H{"product": productData, "message": "Producto añadido correctamente"})
 }
 
 func GetCart(c *gin.Context) {
@@ -109,11 +148,36 @@ func GetCart(c *gin.Context) {
 	cartCollection := db.Client.Database("tienda").Collection("carts")
 	var cart models.Cart
 	if err := cartCollection.FindOne(ctx, bson.M{"userId": user.ID}).Decode(&cart); err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Carrito no encontrado"})
+		// c.JSON(http.StatusNotFound, gin.H{"error": "Carrito no encontrado"})
+		c.HTML(http.StatusOK, "cart.html", nil)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"cart": cart})
+	// Convertir los datos del carrito
+	productCollection := db.Client.Database("tienda").Collection("products")
+	cartProducts := []gin.H{}
+	total := 0.0
+	for _, item := range cart.Products {
+		// buscar el producto en la base de datos
+		var product models.Product
+		err := productCollection.FindOne(ctx, bson.M{"_id": item.ProductID}).Decode(&product)
+		if err != nil {
+			// error al cargar el carrito
+		}
+		cartProducts = append(cartProducts, gin.H{
+			"ProductId":   item.ProductID.Hex(),
+			"Name":        product.Name,
+			"Description": product.Description,
+			"Price":       product.Price,
+			"Quantity":    item.Quantity,
+			"Stock":       product.Stock,
+			"Total":       product.Price * float64(item.Quantity),
+		})
+		total += product.Price * float64(item.Quantity)
+	}
+
+	// c.JSON(http.StatusOK, gin.H{"cart": cart})
+	c.HTML(http.StatusOK, "cart.html", gin.H{"Cart": cartProducts, "total": total})
 }
 
 func RemoveFromCart(c *gin.Context) {
@@ -122,10 +186,14 @@ func RemoveFromCart(c *gin.Context) {
 	var productData struct {
 		ID string `json:"productId" validate:"required"`
 	}
-	if err := c.ShouldBindJSON(&productData); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Datos invalidos"})
-		return
-	}
+	// Datos que vienen en json
+	// if err := c.ShouldBindJSON(&productData); err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Datos invalidos"})
+	// 	return
+	// }
+
+	// Datos que vienen del form
+	productData.ID = c.PostForm("productId")
 
 	// Validar los datos
 	if err := validate.Struct(productData); err != nil {
@@ -167,20 +235,62 @@ func RemoveFromCart(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Producto eliminado del carrito"})
+	// Mandar el carrito actualizado
+	var cart models.Cart
+	if err := cartCollection.FindOne(ctx, bson.M{"userId": user.ID}).Decode(&cart); err != nil {
+		// c.JSON(http.StatusNotFound, gin.H{"error": "Carrito no encontrado"})
+		c.HTML(http.StatusOK, "cart.html", nil)
+		return
+	}
+
+	// Convertir los datos del carrito
+	productCollection := db.Client.Database("tienda").Collection("products")
+	cartProducts := []gin.H{}
+	total := 0.0
+	for _, item := range cart.Products {
+		// buscar el producto en la base de datos
+		var product models.Product
+		err := productCollection.FindOne(ctx, bson.M{"_id": item.ProductID}).Decode(&product)
+		if err != nil {
+			// error al cargar el carrito
+		}
+		cartProducts = append(cartProducts, gin.H{
+			"ProductId":   item.ProductID.Hex(),
+			"Name":        product.Name,
+			"Description": product.Description,
+			"Price":       product.Price,
+			"Quantity":    item.Quantity,
+			"Stock":       product.Stock,
+			"Total":       product.Price * float64(item.Quantity),
+		})
+		total += product.Price * float64(item.Quantity)
+	}
+
+	// c.JSON(http.StatusOK, gin.H{"message": "Producto eliminado del carrito"})
+	c.HTML(http.StatusOK, "cart.html", gin.H{"Cart": cartProducts, "total": total})
 }
 
 func UpdateCartProduct(c *gin.Context) {
 	email := c.GetString("email") // Obetener el email del usuario
 
+	// Datos del producto para actualizar
 	var productData struct {
 		ID       string `json:"productId" validate:"required"`
 		Quantity int    `json:"quantity" validate:"required,min=1"`
 	}
-	if err := c.ShouldBindJSON(&productData); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Datos invalidos"})
-		return
+	// Datos que vienen del json
+	// if err := c.ShouldBindJSON(&productData); err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Datos invalidos"})
+	// 	return
+	// }
+
+	// Datos del form
+	productData.ID = c.PostForm("productId")
+	quantity, err := strconv.Atoi(c.PostForm("quantity"))
+	if err != nil {
+		// Error al convertir
 	}
+	productData.Quantity = quantity
 
 	// Validar los datos
 	if err := validate.Struct(productData); err != nil {
@@ -222,5 +332,38 @@ func UpdateCartProduct(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Producto actualizado correctamente"})
+	// regresar los produvtos actualizados
+	var cart models.Cart
+	if err := cartCollection.FindOne(ctx, bson.M{"userId": user.ID}).Decode(&cart); err != nil {
+		// c.JSON(http.StatusNotFound, gin.H{"error": "Carrito no encontrado"})
+		c.HTML(http.StatusOK, "cart.html", nil)
+		return
+	}
+
+	// Convertir los datos del carrito
+	productCollection := db.Client.Database("tienda").Collection("products")
+	cartProducts := []gin.H{}
+	total := 0.0
+	for _, item := range cart.Products {
+		// buscar el producto en la base de datos
+		var product models.Product
+		err := productCollection.FindOne(ctx, bson.M{"_id": item.ProductID}).Decode(&product)
+		if err != nil {
+			// error al cargar el carrito
+		}
+		cartProducts = append(cartProducts, gin.H{
+			"ProductId":   item.ProductID.Hex(),
+			"Name":        product.Name,
+			"Description": product.Description,
+			"Price":       product.Price,
+			"Quantity":    item.Quantity,
+			"Stock":       product.Stock,
+			"Total":       product.Price * float64(item.Quantity),
+		})
+		total += product.Price * float64(item.Quantity)
+	}
+
+	// c.JSON(http.StatusOK, gin.H{"message": "Producto actualizado correctamente"})
+	c.HTML(http.StatusOK, "cart.html", gin.H{"Cart": cartProducts, "total": total})
+
 }

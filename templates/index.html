@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tienda</title>
+    <script src="../static/js/htmx.min.js"></script>
+    <link rel="stylesheet" href="../static/css/styles.css">
+</head>
+<body>
+    <header>
+        <!-- Aqui se va a remplazar el navbar cada que se recargue la pagina -->
+        <div hx-get="/navbar" hx-trigger="load" hx-swap="outerHTML">
+
+        </div>
+    </header>
+    <!-- Aqui se va a cargar el contenido principal -->
+     <!-- Primero debe cargar los productos -->
+    <main id="content" hx-get="/products" hx-trigger="load" hx-swap="innerHTML">
+        
+    </main>
+    <footer>
+        
+    </footer>
+</body>
+</html>

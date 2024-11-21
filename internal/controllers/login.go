@@ -7,6 +7,7 @@ import (
 
 	"github.com/ItsGabeh/DW-proyecto-tienda/internal/db"
 	"github.com/ItsGabeh/DW-proyecto-tienda/internal/models"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson"
@@ -27,10 +28,16 @@ func LoginUser(c *gin.Context) {
 	}
 
 	// vincular el JSON con los datos para el login
-	if err := c.ShouldBindJSON(&loginData); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Datos invalidos"})
-		return
-	}
+	// if err := c.ShouldBindJSON(&loginData); err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Datos invalidos"})
+	// 	return
+	// }
+
+	// Extraer los elementos que vengan desde un formulario
+	loginData.Email = c.PostForm("email")
+	loginData.Password = c.PostForm("password")
+
+	// Validar datos
 
 	// Buscar el usuario en la base de datos
 	userCollection := db.Client.Database("tienda").Collection("users")
@@ -80,5 +87,12 @@ func LoginUser(c *gin.Context) {
 		true,
 	)
 
-	c.JSON(http.StatusOK, gin.H{"message": "Login exitoso"})
+	session := sessions.Default(c)
+	session.Set("email", user.Email)
+	session.Save()
+
+	// c.JSON(http.StatusOK, gin.H{"message": "Inicio de sesión exitoso"})
+	// c.HTML(http.StatusOK, "index.html", gin.H{"message": "Inicio de sesión exitoso"})
+	c.Header("HX-Redirect", "/")
+	c.Status(http.StatusFound)
 }

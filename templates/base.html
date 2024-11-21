@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tienda</title>
+    <script src="../static/js/htmx.min.js"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="/">Inicio</a>
+            <button hx-get="/cart" hx-target="#content" hx-swap="innerHTML">Ver carrito</button>
+            <button hx-get="/login" hx-target="#content" hx-swap="innerHTML">Iniciar Sesion</button>
+            <button hx-get="/register" hx-target="#content" hx-swap="innerHTML">Registro</button>
+        </nav>
+    </header>
+    <main id="content" hx-get="/products" hx-trigger="load">
+    </main>
+</body>
+</html>

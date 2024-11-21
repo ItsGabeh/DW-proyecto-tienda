@@ -1,0 +1,20 @@
+<div>
+    {{ if .product }}
+    <h3>{{ .product.Name }}</h3>
+    <p>{{ .product.Description }}</p>
+    <p>Precio: {{ .product.Price }}</p>
+    <p>Disponlibles: {{ .product.Stock }}</p>
+    <form hx-post="/cart/add" hx-target="#content">
+        <input type="hidden" name="productId" value="{{ .product.ID }}">
+        <label for="quantity">Cantidad:</label>
+        <input type="number" name="quantity" min="1" max="{{ .product.Stock }}"  value="1" required>
+        <button type="submit">Anadir al carrito</button>
+    </form>
+    {{ end }}
+
+    <br>
+
+    {{ if .message }}
+    <div>{{ .message }}</div>
+    {{ end }}
+</div>

@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,5 +19,11 @@ func LogoutUser(c *gin.Context) {
 		true,
 	)
 
-	c.JSON(http.StatusOK, gin.H{"message": "Sesion cerrada exitosamente"})
+	session := sessions.Default(c)
+	session.Clear()
+	session.Save()
+
+	// c.JSON(http.StatusOK, gin.H{"message": "Sesion cerrada exitosamente"})
+	c.Header("HX-Redirect", "/")
+	c.Status(http.StatusOK)
 }

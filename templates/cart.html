@@ -1,0 +1,32 @@
+<h2>Carrito</h2>
+<div id="cart">
+    {{ if .Cart }}
+        {{range .Cart }}
+        <div class="cart-item">
+            <h3>{{ .Name }}</h3>
+            <p>Descripcion: {{ .Description }}</p>
+            <p>Precio: {{ .Price }}</p>
+            <p>Disponlibles: {{ .Stock }}</p>
+        </div><br>
+        <form hx-post="/cart/update" hx-target="#content">
+            <input type="hidden" name="productId" value="{{ .ProductId }}">
+            <label for="quantity">Cantidad:</label>
+            <input type="number" name="quantity" min="1" max="{{ .Stock }}"  value="{{ .Quantity }}" required>
+            <button type="submit">Actualizar</button>
+        </form><br>
+        <form hx-post="/cart/remove" hx-target="#content">
+            <input type="hidden" name="productId" value="{{ .ProductId }}">
+            <button type="submit">Borrar</button>
+        </form>
+        <p>Total: {{ .Total }}</p>
+        {{ end }}
+    <br><br>
+    <div class="cart-summary">
+        <p>Total a pagar: <span class="grand-total">${{ .total }}</span></p>
+        <button class="checkout-btn">Comprar</button>
+    </div>
+    {{ else }}
+    <h3>Tu carrito está vacio!!</h3>
+    <p>Comienza tu carrito añadiendo productos</p>
+    {{ end }}
+</div>
