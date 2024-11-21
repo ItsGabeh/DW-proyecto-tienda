@@ -1,4 +1,4 @@
-<h2>Carrito</h2>
+<!-- <h2>Carrito</h2>
 <div id="cart">
     {{ if .Cart }}
         {{range .Cart }}
@@ -7,17 +7,17 @@
             <p>Descripcion: {{ .Description }}</p>
             <p>Precio: {{ .Price }}</p>
             <p>Disponlibles: {{ .Stock }}</p>
+            <form hx-post="/cart/update" hx-target="#content">
+                <input type="hidden" name="productId" value="{{ .ProductId }}">
+                <label for="quantity">Cantidad:</label>
+                <input type="number" name="quantity" min="1" max="{{ .Stock }}"  value="{{ .Quantity }}" required>
+                <button type="submit" class="btn-update">Actualizar</button>
+            </form><br>
+            <form hx-post="/cart/remove" hx-target="#content">
+                <input type="hidden" name="productId" value="{{ .ProductId }}">
+                <button type="submit" class="btn-remove">Borrar</button>
+            </form>
         </div><br>
-        <form hx-post="/cart/update" hx-target="#content">
-            <input type="hidden" name="productId" value="{{ .ProductId }}">
-            <label for="quantity">Cantidad:</label>
-            <input type="number" name="quantity" min="1" max="{{ .Stock }}"  value="{{ .Quantity }}" required>
-            <button type="submit">Actualizar</button>
-        </form><br>
-        <form hx-post="/cart/remove" hx-target="#content">
-            <input type="hidden" name="productId" value="{{ .ProductId }}">
-            <button type="submit">Borrar</button>
-        </form>
         <p>Total: {{ .Total }}</p>
         {{ end }}
     <br><br>
@@ -29,4 +29,53 @@
     <h3>Tu carrito está vacio!!</h3>
     <p>Comienza tu carrito añadiendo productos</p>
     {{ end }}
+</div> -->
+
+<h2>Carrito</h2>
+<div id="cart">
+    {{ if .Cart }}
+        {{ range .Cart }}
+        <div class="cart-item">
+            <div class="cart-item-content">
+                <!-- Imagen del producto -->
+                <div class="cart-item-image">
+                    <img src="/static/images/image-placeholder-base.png" alt="{{ .Name }}">
+                </div>
+
+                <!-- Detalles del producto -->
+                <div class="cart-item-details">
+                    <h3>{{ .Name }}</h3>
+                    <p class="description">{{ .Description }}</p>
+                    <p class="price">Precio: ${{ .Price }}</p>
+                    <p class="stock">Disponibles: {{ .Stock }}</p>
+
+                    <!-- Formularios para actualizar cantidad y eliminar -->
+                    <div class="cart-actions">
+                        <form hx-post="/cart/update" hx-target="#content">
+                            <input type="hidden" name="productId" value="{{ .ProductId }}">
+                            <label for="quantity">Cantidad:</label>
+                            <input type="number" name="quantity" min="1" max="{{ .Stock }}" value="{{ .Quantity }}" required>
+                            <button type="submit" class="btn-update">Actualizar</button>
+                        </form>
+                        <form hx-post="/cart/remove" hx-target="#content">
+                            <input type="hidden" name="productId" value="{{ .ProductId }}">
+                            <button type="submit" class="btn-remove">Borrar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <p class="product-total">Total: ${{ .Total }}</p>
+        </div>
+        {{ end }}
+
+        <div class="cart-summary">
+            <h3>Total a pagar: <span class="grand-total">${{ .total }}</span></h3>
+            <button class="checkout-btn">Comprar</button>
+        </div>
+    {{ else }}
+        <h3>Tu carrito está vacío</h3>
+        <p>Comienza tu carrito añadiendo productos</p>
+    {{ end }}
 </div>
+

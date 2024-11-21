@@ -1,4 +1,4 @@
-<div>
+<!-- <div>
     {{ if .product }}
     <h3>{{ .product.Name }}</h3>
     <p>{{ .product.Description }}</p>
@@ -17,4 +17,30 @@
     {{ if .message }}
     <div>{{ .message }}</div>
     {{ end }}
+</div> -->
+
+<div id="product-details">
+    {{ if .product }}
+    <div class="product-image">
+        <img src="/static/images/image-placeholder-base.png" alt="{{ .product.Name }}">
+    </div>
+    <div class="product-info">
+        <h3>{{ .product.Name }}</h3>
+        <p class="description">{{ .product.Description }}</p>
+        <p class="price">Precio: ${{ .product.Price }}</p>
+        <p class="stock">Disponibles: {{ .product.Stock }}</p>
+        <form hx-post="/cart/add" hx-target="#content" class="add-to-cart">
+            <input type="hidden" name="productId" value="{{ .product.ID }}">
+            <label for="quantity">Cantidad:</label>
+            <input type="number" name="quantity" min="1" max="{{ .product.Stock }}" value="1" required>
+            <button type="submit">Añadir al carrito</button>
+        </form>
+        <div id="register-messages">
+            {{ if .message }}
+            <p class="success">{{ .message }}</p>
+            {{ end }}
+        </div>
+    </div>
+    {{ end }}
+
 </div>

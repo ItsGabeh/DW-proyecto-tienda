@@ -1,5 +1,16 @@
-<nav>
+<!-- <nav>
     <button hx-get="/products" hx-target="#content">Inicio</button>
     <button hx-get="/cart" hx-target="#content">Ver carrito</button>
     <button hx-post="/logout">Cerrar Sesion</button>
+</nav> -->
+
+<nav class="navbar">
+    <div class="navbar-logo">
+        <img src="/static/images/store-icon-placeholder.jpg" alt="Logo" class="logo">
+    </div>
+    <ul class="navbar-menu">
+        <li><button hx-get="/products" hx-target="#content">Inicio</button></li>
+        <li><button hx-get="/cart" hx-target="#content">Ver Carrito</button></li>
+        <li><button hx-post="/logout">Cerrar Sesión</button></li>
+    </ul>
 </nav>

@@ -35,7 +35,8 @@ func AuthMiddleware() gin.HandlerFunc {
 		// Extraer el token desde las cookies
 		tokenString, err := c.Cookie("token")
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Falta token de autenticación"})
+			// c.JSON(http.StatusUnauthorized, gin.H{"error": "Falta token de autenticación"})
+			c.HTML(http.StatusOK, "register.html", gin.H{"errors": []string{"Falta autenticacion"}})
 			c.Abort()
 			return
 		}

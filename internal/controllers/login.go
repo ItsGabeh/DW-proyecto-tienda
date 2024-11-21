@@ -7,6 +7,7 @@ import (
 
 	"github.com/ItsGabeh/DW-proyecto-tienda/internal/db"
 	"github.com/ItsGabeh/DW-proyecto-tienda/internal/models"
+	"github.com/ItsGabeh/DW-proyecto-tienda/internal/utils"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -38,6 +39,12 @@ func LoginUser(c *gin.Context) {
 	loginData.Password = c.PostForm("password")
 
 	// Validar datos
+	if err := validate.Struct(loginData); err != nil {
+		errorMessages := utils.ValidationMessages(err)
+		// c.JSON(http.StatusBadRequest, gin.H{"errors": errorMessages})
+		c.HTML(http.StatusOK, "login.html", gin.H{"errors": errorMessages})
+		return
+	}
 
 	// Buscar el usuario en la base de datos
 	userCollection := db.Client.Database("tienda").Collection("users")

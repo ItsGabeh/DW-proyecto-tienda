@@ -82,7 +82,26 @@ func AddToCart(c *gin.Context) {
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{"message": "Producto añadido al carrito"})
+		// Obtener el producto desde la base de datos
+		productCollection := db.Client.Database("tienda").Collection("products")
+		var product models.Product
+		err = productCollection.FindOne(ctx, bson.M{"_id": id}).Decode(&product)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "No se pudo obtener los datos del producto"})
+			return
+		}
+
+		// Poner el producto en un formato para el front
+		productData := gin.H{
+			"ID":          product.ID.Hex(),
+			"Name":        product.Name,
+			"Description": product.Description,
+			"Price":       product.Price,
+			"Stock":       product.Stock,
+		}
+
+		// c.JSON(http.StatusOK, gin.H{"message": "Producto añadido al carrito"})
+		c.HTML(http.StatusOK, "product.html", gin.H{"product": productData, "message": "Producto añadido correctamente"})
 		return
 	}
 

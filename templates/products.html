@@ -1,4 +1,4 @@
-<div>
+<!-- <div>
     <h1>Lista de productos</h1>
     <div>
         {{ range .Products }}
@@ -10,4 +10,24 @@
         </div>
     {{ end }}
     </div>
+</div> -->
+
+<div id="product-list">
+    <h1>Lista de productos</h1>
+    <div class="product-grid">
+        {{ range .Products }}
+        <div class="product-card">
+            <img src="/static/images/image-placeholder-base.png" alt="{{ .Name }}" class="product-image">
+            <h3 class="product-name">{{ .Name }}</h3>
+            <p class="product-price">${{ .Price }}</p>
+            <div class="product-rating">
+                ⭐⭐⭐⭐⭐
+            </div>
+            <button class="view-product-btn" hx-get="/products/{{ .ID }}" hx-target="#content">
+                Ver Producto
+            </button>
+        </div>
+        {{ end }}
+    </div>
 </div>
+

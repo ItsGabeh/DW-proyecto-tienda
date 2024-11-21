@@ -7,6 +7,7 @@ import (
 
 	"github.com/ItsGabeh/DW-proyecto-tienda/internal/db"
 	"github.com/ItsGabeh/DW-proyecto-tienda/internal/models"
+	"github.com/ItsGabeh/DW-proyecto-tienda/internal/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson"
@@ -32,12 +33,14 @@ func RegisterUser(c *gin.Context) {
 
 	// Validar los datos del usuario
 	if err := validate.Struct(user); err != nil {
-		var errorMessages []string
-		validationErrors := err.(validator.ValidationErrors)
-		for _, e := range validationErrors {
-			errorMessages = append(errorMessages, e.Error())
-		}
-		c.JSON(http.StatusBadRequest, gin.H{"errors": errorMessages})
+		// var errorMessages []string
+		// validationErrors := err.(validator.ValidationErrors)
+		// for _, e := range validationErrors {
+		// 	errorMessages = append(errorMessages, e.Error())
+		// }
+		errorMessages := utils.ValidationMessages(err)
+		// c.JSON(http.StatusBadRequest, gin.H{"errors": errorMessages})
+		c.HTML(http.StatusOK, "register.html", gin.H{"errors": errorMessages})
 		return
 	}
 
@@ -53,7 +56,8 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 	if count > 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "El email ya está registrado"})
+		// c.JSON(http.StatusBadRequest, gin.H{"error": "El email ya está registrado"})
+		c.HTML(http.StatusOK, "register.html", gin.H{"error": "El email ya está registrado"})
 		return
 	}
 
@@ -73,13 +77,7 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	messages := []gin.H{
-		gin.H{
-			"message": "Registro exitoso",
-		},
-	}
-
 	// c.JSON(http.StatusCreated, gin.H{"message": "Usuario registrado correctamente"})
-	c.HTML(http.StatusCreated, "register.html", gin.H{"messages": messages})
+	c.HTML(http.StatusCreated, "register.html", gin.H{"message": "Registro exitoso"})
 
 }
